@@ -1,0 +1,115 @@
+Index: src/ConversorMoeda.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/ConversorMoeda.java b/src/ConversorMoeda.java
+new file mode 100644
+--- /dev/null	(revision 31d0dc4d74cc02e7de77a1f0cbbd27592b7ecd17)
++++ b/src/ConversorMoeda.java	(revision 31d0dc4d74cc02e7de77a1f0cbbd27592b7ecd17)
+@@ -0,0 +1,43 @@
++import java.io.BufferedReader;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
++import com.google.gson.Gson;
++import java.util.Map;
++
++public class ConversorMoeda {
++
++    private static final String API_KEY = "506fcd6b063831195c002e34";
++
++    public static void converter(String moedaOrigem, String moedaDestino, double valor) {
++        try {
++            String urlStr = "https://v6.exchangerate-api.com/v6/" + API_KEY + "/latest/" + moedaOrigem;
++            URL url = new URL(urlStr);
++            HttpURLConnection conexao = (HttpURLConnection) url.openConnection();
++            conexao.setRequestMethod("GET");
++
++            BufferedReader reader = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
++            StringBuilder resposta = new StringBuilder();
++            String linha;
++            while ((linha = reader.readLine()) != null) {
++                resposta.append(linha);
++            }
++            reader.close();
++
++            Gson gson = new Gson();
++            Map<String, Object> json = gson.fromJson(resposta.toString(), Map.class);
++
++            if ("success".equals(json.get("result"))) {
++                Map<String, Double> taxas = (Map<String, Double>) json.get("conversion_rates");
++                double taxa = taxas.get(moedaDestino);
++                double convertido = valor * taxa;
++                System.out.printf(" %.2f %s = %.2f %s\n", valor, moedaOrigem, convertido, moedaDestino);
++            } else {
++                System.out.println("Erro ao obter taxas de câmbio.");
++            }
++
++        } catch (Exception e) {
++            System.out.println("Erro na requisição: " + e.getMessage());
++        }
++    }
++}
+Index: src/Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Main.java b/src/Main.java
+new file mode 100644
+--- /dev/null	(revision 31d0dc4d74cc02e7de77a1f0cbbd27592b7ecd17)
++++ b/src/Main.java	(revision 31d0dc4d74cc02e7de77a1f0cbbd27592b7ecd17)
+@@ -0,0 +1,51 @@
++import java.util.Scanner;
++
++public class main {
++    public static void main(String[] args) throws Exception {
++        Scanner leitura = new Scanner(System.in);
++        String[] moedas = {"USD", "ARS", "BRL", "COP"};
++
++        while (true) {
++
++
++            System.out.println("\n------------------------------");
++            System.out.println("Seja bem-vindo ao conversor de Moeda ");
++            System.out.println("1 - Dólar");
++            System.out.println("2 - Peso argentino");
++            System.out.println("3 - Real brasileiro");
++            System.out.println("4 - Peso colombiano");
++            System.out.println("5 - Sair");
++            System.out.println("Escolha a moeda de origem: ");
++            int origem = leitura.nextInt();
++
++            if (origem == 5) break;
++            if (origem < 1 || origem > 4) {
++                System.out.println("Opção inválida!");
++                continue;
++            }
++            System.out.print("Escolha a moeda de destino: ");
++            int destino = leitura.nextInt();
++
++            if (destino == 5) break;
++            if (destino < 1 || destino > 4) {
++                System.out.println("Opção inválida!");
++                continue;
++            }
++            System.out.print("Digite o valor a ser convertido: ");
++            double valor = leitura.nextDouble();
++
++            String moedaOrigem = moedas[origem - 1];
++            String moedaDestino = moedas[destino - 1];
++
++            if (moedaOrigem.equals(moedaDestino)) {
++                System.out.println(" Mesma moeda selecionada. Resultado: " + valor);
++            } else {
++                ConversorMoeda.converter(moedaOrigem, moedaDestino, valor);
++
++
++            }
++        }
++        System.out.println("Obrigado por usar o conversor!");
++        leitura.close();
++    }
++}
+\ No newline at end of file
